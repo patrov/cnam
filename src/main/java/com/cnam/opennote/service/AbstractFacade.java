@@ -6,12 +6,14 @@ package com.cnam.opennote.service;
 
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 /**
  *
- * @author Administrateur
+ * @author h.baptiste
  */
 public abstract class AbstractFacade<T> {
+
     private Class<T> entityClass;
 
     public AbstractFacade(Class<T> entityClass) {
@@ -36,19 +38,17 @@ public abstract class AbstractFacade<T> {
         return getEntityManager().find(entityClass, id);
     }
 
-    public List<T> findAll() {
-        javax.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        cq.select(cq.from(entityClass));
-        return getEntityManager().createQuery(cq).getResultList();
+    public List<T> findAll(String type) {
+        Query query = getEntityManager().createQuery(query); 
+        List objects = getEntityManager().createQuery("from " + this.entityClass.getName()).getResultList();
+        return objects;
     }
 
     public List<T> findRange(int[] range) {
-        javax.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        cq.select(cq.from(entityClass));
-        javax.persistence.Query q = getEntityManager().createQuery(cq);
-        q.setMaxResults(range[1] - range[0]);
-        q.setFirstResult(range[0]);
-        return q.getResultList();
+        Query query = getEntityManager().createQuery("from "+this.entityClass.getName());
+        query.setMaxResults(range[1] - range[0]);
+        query.setFirstResult(range[0]);
+        return query.getResultList();
     }
 
     public int count() {
@@ -58,5 +58,4 @@ public abstract class AbstractFacade<T> {
         javax.persistence.Query q = getEntityManager().createQuery(cq);
         return ((Long) q.getSingleResult()).intValue();
     }
-    
 }
