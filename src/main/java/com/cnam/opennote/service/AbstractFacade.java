@@ -6,6 +6,7 @@ package com.cnam.opennote.service;
 
 import java.util.List;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 /**
  *
@@ -36,10 +37,10 @@ public abstract class AbstractFacade<T> {
         return getEntityManager().find(entityClass, id);
     }
 
-    public List<T> findAll() {
-        javax.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        cq.select(cq.from(entityClass));
-        return getEntityManager().createQuery(cq).getResultList();
+    public List<T> findAll(String type) {
+        Query query = getEntityManager().createNamedQuery("Content.findByModel");
+        query.setParameter("model", type);
+        return query.getResultList();
     }
 
     public List<T> findRange(int[] range) {

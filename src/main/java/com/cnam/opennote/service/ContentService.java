@@ -18,6 +18,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -27,12 +28,12 @@ import org.json.simple.parser.JSONParser;
  */
 @Stateless
 @Path("contents")
-public class ContentFacadeREST extends AbstractFacade<Content> {
+public class ContentService extends AbstractFacade<Content> {
 
     @PersistenceContext(unitName = "opennotePU")
     private EntityManager em;
 
-    public ContentFacadeREST() {
+    public ContentService() {
         super(Content.class);
     }
 
@@ -62,21 +63,18 @@ public class ContentFacadeREST extends AbstractFacade<Content> {
     public Content find(@PathParam("id") Integer id) {
         return super.find(id);
     }
-    
-    /*OK 
-     */
+
     @GET
     @Path("/find/{id}")
     @Produces({"application/json"})
     public Response findJson(@PathParam("id") Integer id) {
-        Response response = Response.ok().build(); 
+        Response response = Response.ok().build();
         try {
             Content content = super.find(id);
-            JSONParser parser = new JSONParser();
-            JSONObject json = (JSONObject) parser.parse(content.getData());
-            json.put("uid",content.getUid());
-            response = response.ok(json.toJSONString()).build();
+            response = Response.ok(content.toJson().toJSONString()).build();
         } catch (Exception e) {
+            e.printStackTrace(System.out);
+            response = Response.ok().build();
         }
         return response;
     }
@@ -88,10 +86,26 @@ public class ContentFacadeREST extends AbstractFacade<Content> {
      public Response createJson(@)
      public Response.ok("{status:'ok'}").build();*/
     @GET
-    @Override
-    @Produces({"application/xml", "application/json"})
-    public List<Content> findAll() {
-        return super.findAll();
+    @Produces({"application/json"})
+    @Path("findAll/{type}")
+    public Response findAllJson(@PathParam("type") String type) {
+        Response response = Response.ok().build();
+        try {
+            List<Content> contents = super.findAll(type);
+            JSONArray jsonColl = new JSONArray();
+            for (Content content : contents) {
+                JSONObject jsonContent = content.toJson();
+                jsonColl.add(jsonContent);
+            }
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("result",jsonColl);
+            jsonResponse.put("status","ok");
+            jsonResponse.put("error",false);
+            response = Response.ok(jsonResponse.toJSONString()).build();
+        } catch (Exception e) {
+        }
+        return response;
+
     }
 
     @GET
