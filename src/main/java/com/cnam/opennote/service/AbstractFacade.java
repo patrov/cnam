@@ -39,9 +39,10 @@ public abstract class AbstractFacade<T> {
     }
 
     public List<T> findAll(String type) {
-        Query query = getEntityManager().createQuery(query); 
-        List objects = getEntityManager().createQuery("from " + this.entityClass.getName()).getResultList();
-        return objects;
+
+        Query query = getEntityManager().createNamedQuery("Content.findByModel");
+        query.setParameter("model", type);
+        return query.getResultList();
     }
 
     public List<T> findRange(int[] range) {

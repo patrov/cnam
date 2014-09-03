@@ -31,12 +31,12 @@ import org.json.simple.parser.JSONParser;
  */
 @Stateless
 @Path("contents")
-public class ContentFacadeREST extends AbstractFacade<Content> {
+public class ContentService extends AbstractFacade<Content> {
 
     @PersistenceContext(unitName = "opennotePU")
     private EntityManager em;
 
-    public ContentFacadeREST() {
+    public ContentService() {
         super(Content.class);
     }
 
@@ -95,39 +95,38 @@ public class ContentFacadeREST extends AbstractFacade<Content> {
 
     @GET
     @Path("/find/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findJson(@PathParam("id") Integer id, @PathParam("callback") String callback) {
-        Response response = Response.ok("{'est':'passe'}").build();
+    @Produces({"application/json"})
+    public Response findJson(@PathParam("id") Integer id) {
+        Response response = Response.ok().build();
         try {
             Content content = super.find(id);
-            JSONParser parser = new JSONParser();
-            JSONObject obj = (JSONObject) parser.parse(content.getData());
-            obj.put("uid", content.getUid());
-            response = Response.ok(obj.toJSONString()).build();
+            response = Response.ok(content.toJson().toJSONString()).build();
         } catch (Exception e) {
-            response = Response.ok("{error:true}").build();
+            e.printStackTrace(System.out);
+            response = Response.ok().build();
         }
         return response;
     }
 
     /* OK */
     @GET
-    @Path("findAll/{model}")
     @Produces({"application/json"})
-    public Response findAllJson(@PathParam("model") String model) {
-        Response response = Response.ok("{'method':'findAllJson'}").build();
+    @Path("findAll/{type}")
+    public Response findAllJson(@PathParam("type") String type) {
+        Response response = Response.ok().build();
         try {
-            JSONArray jsonCollection = new JSONArray();
-            JSONParser parser = new JSONParser();
-            List<Content> contents = super.findAll();
+            List<Content> contents = super.findAll(type);
+            JSONArray jsonColl = new JSONArray();
             for (Content content : contents) {
-                JSONObject obj = (JSONObject) parser.parse(content.getData());
-                obj.put("uid", content.getUid());
-                jsonCollection.add(obj);
+                JSONObject jsonContent = content.toJson();
+                jsonColl.add(jsonContent);
             }
-            response = Response.ok(jsonCollection.toJSONString()).build();
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("result",jsonColl);
+            jsonResponse.put("status","ok");
+            jsonResponse.put("error",false);
+            response = Response.ok(jsonResponse.toJSONString()).build();
         } catch (Exception e) {
-            response = Response.ok("{'error':" + e.getMessage() + "}").build();
         }
         return response;
     }

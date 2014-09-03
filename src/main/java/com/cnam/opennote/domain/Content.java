@@ -21,6 +21,9 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -39,6 +42,7 @@ import javax.xml.bind.annotation.XmlRootElement;
     @NamedQuery(name = "Content.findByOwnerUid", query = "SELECT c FROM Content c WHERE c.ownerUid = :ownerUid"),
     @NamedQuery(name = "Content.findByUpdatedAt", query = "SELECT c FROM Content c WHERE c.updatedAt = :updatedAt")})
 public class Content implements Serializable {
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -179,9 +183,15 @@ public class Content implements Serializable {
         return true;
     }
 
+    public JSONObject toJson() throws ParseException {
+        JSONParser parser = new JSONParser();
+        JSONObject json = (JSONObject) parser.parse(this.getData());
+        json.put("uid", this.getUid());
+        return json;
+    }
+
     @Override
     public String toString() {
         return "com.cnam.opennote.Content[ uid=" + uid + " ]";
     }
-    
 }
