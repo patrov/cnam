@@ -5,6 +5,7 @@
 package com.cnam.opennote.service;
 
 import com.cnam.opennote.domain.Content;
+import java.util.Date;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -18,6 +19,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,7 +27,7 @@ import org.json.simple.parser.JSONParser;
 
 /**
  *
- * @author Administrateur
+ * @author h.baptiste
  */
 @Stateless
 @Path("contents")
@@ -36,13 +38,6 @@ public class ContentService extends AbstractFacade<Content> {
     
     public ContentService() {
         super(Content.class);
-    }
-    
-    @POST
-    @Override
-    @Consumes({"application/xml", "application/json"})
-    public void create(Content entity) {
-        super.create(entity);
     }
     
     @POST
@@ -59,6 +54,32 @@ public class ContentService extends AbstractFacade<Content> {
             e.printStackTrace(System.out);
         }
     }
+
+    @POST
+    @Path("create")
+    @Produces({"application/json"})
+    public Response createJson(@FormParam("params") String jsonContent) {
+        Response response = Response.ok().build();
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject obj = (JSONObject) parser.parse(jsonContent);
+            /* create */
+            Content content = new Content();
+            content.setModel((String) obj.get("model"));
+            content.setOwnerUid(2);
+            content.setCreatedAt(new Date());
+            content.setUpdatedAt(new Date());
+            JSONObject data = (JSONObject) obj.get("data");
+            content.setData(data.toJSONString());
+            super.create(content);
+            obj.put("uid", content.getUid());
+            /*handle indexation here*/
+            response = Response.ok(obj.toJSONString()).build();
+        } catch (Exception e) {
+            response = Response.ok(e.getMessage()).build();
+        }
+        return response;
+    }
     
     @DELETE
     @Path("{id}")
@@ -68,7 +89,7 @@ public class ContentService extends AbstractFacade<Content> {
     
     @GET
     @Path("{id}")
-    @Produces({"application/xml", "application/json"})
+    @Consumes({"application/xml", "application/json"})
     public Content find(@PathParam("id") Integer id) {
         return super.find(id);
     }
@@ -92,12 +113,7 @@ public class ContentService extends AbstractFacade<Content> {
         return response;
     }
 
-    /* @PUT
-     @Path("create")
-     @Produce({"application/json"})
-     @Consumes({"application/json"})
-     public Response createJson(@)
-     public Response.ok("{status:'ok'}").build();*/
+    /* OK */
     @GET
     @Produces({"application/json"})
     @Path("findAll/{type}")
@@ -118,8 +134,8 @@ public class ContentService extends AbstractFacade<Content> {
         } catch (Exception e) {
         }
         return response;
-        
     }
+
     
     @Override
     protected EntityManager getEntityManager() {

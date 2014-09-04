@@ -10,9 +10,10 @@ import javax.persistence.Query;
 
 /**
  *
- * @author Administrateur
+ * @author h.baptiste
  */
 public abstract class AbstractFacade<T> {
+
     private Class<T> entityClass;
 
     public AbstractFacade(Class<T> entityClass) {
@@ -38,18 +39,17 @@ public abstract class AbstractFacade<T> {
     }
 
     public List<T> findAll(String type) {
+
         Query query = getEntityManager().createNamedQuery("Content.findByModel");
         query.setParameter("model", type);
         return query.getResultList();
     }
 
     public List<T> findRange(int[] range) {
-        javax.persistence.criteria.CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        cq.select(cq.from(entityClass));
-        javax.persistence.Query q = getEntityManager().createQuery(cq);
-        q.setMaxResults(range[1] - range[0]);
-        q.setFirstResult(range[0]);
-        return q.getResultList();
+        Query query = getEntityManager().createQuery("from "+this.entityClass.getName());
+        query.setMaxResults(range[1] - range[0]);
+        query.setFirstResult(range[0]);
+        return query.getResultList();
     }
 
     public int count() {
@@ -59,5 +59,4 @@ public abstract class AbstractFacade<T> {
         javax.persistence.Query q = getEntityManager().createQuery(cq);
         return ((Long) q.getSingleResult()).intValue();
     }
-    
 }
