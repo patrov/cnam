@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -29,41 +30,49 @@ import org.json.simple.parser.JSONParser;
 @Stateless
 @Path("contents")
 public class ContentService extends AbstractFacade<Content> {
-
+    
     @PersistenceContext(unitName = "opennotePU")
     private EntityManager em;
-
+    
     public ContentService() {
         super(Content.class);
     }
-
+    
     @POST
     @Override
     @Consumes({"application/xml", "application/json"})
     public void create(Content entity) {
         super.create(entity);
     }
-
-    @PUT
-    @Override
-    @Consumes({"application/xml", "application/json"})
-    public void edit(Content entity) {
-        super.edit(entity);
+    
+    @POST
+    @Path("update")
+    public void update(@FormParam("data") String data) {
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject json = (JSONObject) parser.parse(data);
+            long uid = (Long) json.get("uid");
+            Content content = super.find((int)uid);
+            content.setData(data);
+            super.edit(content);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
     }
-
+    
     @DELETE
     @Path("{id}")
     public void remove(@PathParam("id") Integer id) {
         super.remove(super.find(id));
     }
-
+    
     @GET
     @Path("{id}")
     @Produces({"application/xml", "application/json"})
     public Content find(@PathParam("id") Integer id) {
         return super.find(id);
     }
-
+    
     @GET
     @Path("/find/{id}")
     @Produces({"application/json"})
@@ -71,7 +80,11 @@ public class ContentService extends AbstractFacade<Content> {
         Response response = Response.ok().build();
         try {
             Content content = super.find(id);
-            response = Response.ok(content.toJson().toJSONString()).build();
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("result", content.toJson());
+            jsonResponse.put("error", false);
+            jsonResponse.put("status", "ok");
+            response = Response.ok(jsonResponse.toJSONString()).build();
         } catch (Exception e) {
             e.printStackTrace(System.out);
             response = Response.ok().build();
@@ -98,30 +111,16 @@ public class ContentService extends AbstractFacade<Content> {
                 jsonColl.add(jsonContent);
             }
             JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("result",jsonColl);
-            jsonResponse.put("status","ok");
-            jsonResponse.put("error",false);
+            jsonResponse.put("result", jsonColl);
+            jsonResponse.put("status", "ok");
+            jsonResponse.put("error", false);
             response = Response.ok(jsonResponse.toJSONString()).build();
         } catch (Exception e) {
         }
         return response;
-
+        
     }
-
-    @GET
-    @Path("{from}/{to}")
-    @Produces({"application/xml", "application/json"})
-    public List<Content> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
-        return super.findRange(new int[]{from, to});
-    }
-
-    @GET
-    @Path("count")
-    @Produces("text/plain")
-    public String countREST() {
-        return String.valueOf(super.count());
-    }
-
+    
     @Override
     protected EntityManager getEntityManager() {
         return em;
