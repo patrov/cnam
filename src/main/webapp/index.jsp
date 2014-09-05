@@ -64,6 +64,8 @@
                 try {
                     $.get("${pageContext.request.contextPath}/js/apps/readlist/templates/editcontent.tpl").done(function(response){
                         //$(response).appendTo("body");
+                        console.log($(response));
+                        $("body").prepend("<p>sdsd</p>");
                 
                         /*Require*/
                         Kimo.require(["ReadList"], function() {

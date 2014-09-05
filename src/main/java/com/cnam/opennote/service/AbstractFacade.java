@@ -39,9 +39,16 @@ public abstract class AbstractFacade<T> {
     }
 
     public List<T> findAll(String type) {
-
         Query query = getEntityManager().createNamedQuery("Content.findByModel");
         query.setParameter("model", type);
+        return query.getResultList();
+    }
+    
+    public List<T> findSubcontents(String container,String order){
+        Query query = getEntityManager().createNamedQuery("Indexation.findSubcontents");
+        query.setParameter("fieldvalue",container);
+        query.setParameter("order", order+" DESC");
+        /*deal with order by here*/
         return query.getResultList();
     }
 
