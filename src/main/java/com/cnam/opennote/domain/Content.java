@@ -35,7 +35,6 @@ import org.json.simple.parser.ParseException;
 @NamedQueries({
     @NamedQuery(name = "Content.findAll", query = "SELECT c FROM Content c"),
     @NamedQuery(name = "Content.findByUid", query = "SELECT c FROM Content c WHERE c.uid = :uid"),
-    @NamedQuery(name = "Content.findByAppKey", query = "SELECT c FROM Content c WHERE c.appKey = :appKey"),
     @NamedQuery(name = "Content.findByModel", query = "SELECT c FROM Content c WHERE c.model = :model"),
     @NamedQuery(name = "Content.findByCreatedAt", query = "SELECT c FROM Content c WHERE c.createdAt = :createdAt"),
     @NamedQuery(name = "Content.findByState", query = "SELECT c FROM Content c WHERE c.state = :state"),
@@ -49,11 +48,7 @@ public class Content implements Serializable {
     @Basic(optional = false)
     @Column(name = "uid")
     private Integer uid;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 32)
-    @Column(name = "appKey")
-    private String appKey;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
@@ -89,9 +84,8 @@ public class Content implements Serializable {
         this.uid = uid;
     }
 
-    public Content(Integer uid, String appKey, String model, String data, Date createdAt, int state, int ownerUid) {
+    public Content(Integer uid, String model, String data, Date createdAt, int state, int ownerUid) {
         this.uid = uid;
-        this.appKey = appKey;
         this.model = model;
         this.data = data;
         this.createdAt = createdAt;
@@ -105,14 +99,6 @@ public class Content implements Serializable {
 
     public void setUid(Integer uid) {
         this.uid = uid;
-    }
-
-    public String getAppKey() {
-        return appKey;
-    }
-
-    public void setAppKey(String appKey) {
-        this.appKey = appKey;
     }
 
     public String getModel() {

@@ -62,17 +62,17 @@
         <script>
             $(function() {
                 try {
-                    $.get("${pageContext.request.contextPath}/js/apps/readlist/templates/editcontent.tpl").done(function(response){
-                        //$(response).appendTo("body");
-                        console.log($(response));
-                        $("body").prepend("<p>sdsd</p>");
-                
-                        /*Require*/
-                        Kimo.require(["ReadList"], function() {
+                    $.ajax({
+                        dataType: "html",
+                        url: "${pageContext.request.contextPath}/js/apps/readlist/templates/editcontent.tpl"
+                       }).done(function(response){
+                           $(response).appendTo("body");
+                            Kimo.require(["ReadList"], function() {
                             var ApplicationManager = require("Kimo.ApplicationManager");
                             ApplicationManager.start("ReadList");
                         }); 
-                    });
+                       }); 
+                       
                 }
                 catch (e) {
                     console.log("error", e);

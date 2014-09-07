@@ -7,6 +7,7 @@ package com.cnam.opennote.service;
 import com.cnam.opennote.domain.Content;
 import java.util.Date;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -31,7 +32,13 @@ import org.json.simple.parser.JSONParser;
 @Path("contents")
 public class ContentService extends AbstractFacade<Content> {
 
+    @EJB
+    private IndexationService indexationService;
     @PersistenceContext(unitName = "opennotePU")
+   
+    
+    
+    
     private EntityManager em;
 
     public ContentService() {
@@ -40,7 +47,8 @@ public class ContentService extends AbstractFacade<Content> {
 
     @POST
     @Path("update")
-    public void update(@FormParam("data") String data) {
+    public Response update(@FormParam("data") String data) {
+        Response response = Response.ok().build();
         try {
             JSONParser parser = new JSONParser();
             JSONObject json = (JSONObject) parser.parse(data);
@@ -48,32 +56,45 @@ public class ContentService extends AbstractFacade<Content> {
             Content content = super.find((int) uid);
             content.setData(data);
             super.edit(content);
+            /* handle indexation here */
+            
+            indexationService.handleContentIndexes(content);
+            response = this.getJsonResponse(content.toJson());
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }
+        return response;
     }
 
     @POST
-    @Path("create")
     @Produces({"application/json"})
-    public Response createJson(@FormParam("params") String jsonContent) {
+    public Response createJson(@FormParam("data") String jsonContent) {
         Response response = Response.ok().build();
         try {
+            System.out.println(jsonContent);
             JSONParser parser = new JSONParser();
             JSONObject obj = (JSONObject) parser.parse(jsonContent);
             /* create */
+            String model = (String) obj.get("__entity__");
             Content content = new Content();
-            content.setModel((String) obj.get("model"));
-            content.setOwnerUid(2);
+            content.setModel(model);
+            content.setOwnerUid(2); //get from user service
+
             content.setCreatedAt(new Date());
             content.setUpdatedAt(new Date());
-            JSONObject data = (JSONObject) obj.get("data");
-            content.setData(data.toJSONString());
+            content.setData(jsonContent);
             super.create(content);
             obj.put("uid", content.getUid());
-            /*handle indexation here*/
-            response = Response.ok(obj.toJSONString()).build();
+            /* handle JsonResponse here */
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("result", content.toJson());
+            jsonResponse.put("error", false);
+            jsonResponse.put("status", "ok");
+            /* handle indexation */
+            response = Response.ok(jsonResponse.toJSONString()).build();
         } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace(System.out);
             response = Response.ok(e.getMessage()).build();
         }
         return response;
@@ -82,11 +103,16 @@ public class ContentService extends AbstractFacade<Content> {
     @DELETE
     @Path("{id}")
     public void remove(@PathParam("id") Integer id) {
-        super.remove(super.find(id));
+        try {
+            super.remove(super.find(id));
+            /*delete indexation too*/
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
     }
 
     @GET
-    @Path("/find/{id}")
+    @Path("/{id}")
     @Produces({"application/json"})
     public Response findJson(@PathParam("id") Integer id) {
         Response response = Response.ok().build();
@@ -104,6 +130,7 @@ public class ContentService extends AbstractFacade<Content> {
         return response;
     }
 
+    /* move to indexationService */
     @GET
     @Produces({"application/json"})
     @Path("subcontents")
@@ -114,7 +141,7 @@ public class ContentService extends AbstractFacade<Content> {
             @QueryParam("end") String end) {
         Response response = Response.ok().build();
         try {
-            List<Content> contents = super.findSubcontents(container,order);
+            List<Content> contents = super.findSubcontents(container, order);
             JSONArray jsonColl = new JSONArray();
             for (Content content : contents) {
                 JSONObject jsonContent = content.toJson();
@@ -150,12 +177,22 @@ public class ContentService extends AbstractFacade<Content> {
                 JSONObject jsonContent = content.toJson();
                 jsonColl.add(jsonContent);
             }
+            return this.getJsonResponse(jsonColl);
+        } catch (Exception e) {
+        }
+        return response;
+    }
+
+    private Response getJsonResponse(Object result) {
+        Response response = Response.ok().build();
+        try {
             JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("result", jsonColl);
+            jsonResponse.put("result", result);
             jsonResponse.put("status", "ok");
             jsonResponse.put("error", false);
-            response = Response.ok(jsonResponse.toJSONString()).build();
+            return Response.ok(jsonResponse.toJSONString()).build();
         } catch (Exception e) {
+        
         }
         return response;
     }
