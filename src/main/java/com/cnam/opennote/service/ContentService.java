@@ -35,6 +35,10 @@ public class ContentService extends AbstractFacade<Content> {
     @EJB
     private IndexationService indexationService;
     @PersistenceContext(unitName = "opennotePU")
+   
+    
+    
+    
     private EntityManager em;
 
     public ContentService() {
