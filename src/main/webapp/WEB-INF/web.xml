@@ -6,7 +6,7 @@
         <init-param>
             <description>Multiple packages, separated by semicolon(;), can be specified in param-value</description>
             <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>com.cnam.opennote.service;com.cnam.opennote.service.service</param-value>
+            <param-value>com.cnam.opennote.service</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>

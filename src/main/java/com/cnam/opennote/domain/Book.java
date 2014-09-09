@@ -49,41 +49,49 @@ public class Book implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "uid")
-    private Long uid;
+     private Integer uid;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "title")
     private String title;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "subtitle")
     private String subtitle;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "author")
     private String author;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "publisher")
     private String publisher;
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "pubyear")
     @Temporal(TemporalType.DATE)
     private Date pubyear;
+    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "pubplace")
     private String pubplace;
+    
     @Basic(optional = false)
     @NotNull
     @Column(name = "pagecount")
     private int pagecount;
+    
     @Basic(optional = false)
     @NotNull
     
@@ -105,11 +113,11 @@ public class Book implements Serializable {
     public Book() {
     }
 
-    public Book(Long uid) {
+    public Book(int uid) {
         this.uid = uid;
     }
 
-    public Book(Long uid, String title, String subtitle, String author, String publisher, Date pubyear, String pubplace, int pagecount, Content content, int isbn, String keywords) {
+    public Book(int uid, String title, String subtitle, String author, String publisher, Date pubyear, String pubplace, int pagecount, Content content, int isbn, String keywords) {
         this.uid = uid;
         this.title = title;
         this.subtitle = subtitle;
@@ -123,11 +131,11 @@ public class Book implements Serializable {
         this.keywords = keywords;
     }
 
-    public Long getUid() {
+    public int getUid() {
         return uid;
     }
 
-    public void setUid(Long uid) {
+    public void setUid(int uid) {
         this.uid = uid;
     }
 
@@ -208,7 +216,7 @@ public class Book implements Serializable {
     }
     
     public void hidrateFromJSON(JSONObject jsonData){
-        
+        this.content.setData(jsonData.toJSONString());
     }
 
     public void setKeywords(String keywords) {
