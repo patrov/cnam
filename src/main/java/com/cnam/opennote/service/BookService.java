@@ -56,7 +56,8 @@ public class BookService extends AbstractFacade<Book> {
             JSONObject jsonObject = (JSONObject)jsonParser.parse(data);
             long uid = (Long) jsonObject.get("uid");
             Book book = super.find((int) uid);
-            book.hidrateFromJSON(jsonObject);
+            book.hidrateFromJSON(jsonObject);//handle title etc
+            em.merge(book);
             indexationService.upsertBookIndexes(book);
         } catch (Exception e) {
             System.err.println(e.getMessage());

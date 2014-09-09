@@ -44,61 +44,51 @@ import org.json.simple.JSONObject;
     @NamedQuery(name = "Book.findByIsbn", query = "SELECT b FROM Book b WHERE b.isbn = :isbn")})
 @XmlRootElement
 public class Book implements Serializable {
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "uid")
-     private Integer uid;
-    
+    private Integer uid;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "title")
     private String title;
-    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "subtitle")
     private String subtitle;
-    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "author")
     private String author;
-    
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "publisher")
     private String publisher;
-    
     @Basic(optional = false)
     @NotNull
     @Column(name = "pubyear")
-    @Temporal(TemporalType.DATE)
-    private Date pubyear;
-    
+    private String pubyear;
     @Basic(optional = false)
     @NotNull
     @Size(min = 1, max = 255)
     @Column(name = "pubplace")
     private String pubplace;
-    
     @Basic(optional = false)
     @NotNull
     @Column(name = "pagecount")
     private int pagecount;
-    
     @Basic(optional = false)
     @NotNull
-    
     @OneToOne
     @JoinColumn(name = "content_uid")
     private Content content;
-    
     @Basic(optional = false)
     @NotNull
     @Column(name = "isbn")
@@ -117,7 +107,7 @@ public class Book implements Serializable {
         this.uid = uid;
     }
 
-    public Book(int uid, String title, String subtitle, String author, String publisher, Date pubyear, String pubplace, int pagecount, Content content, int isbn, String keywords) {
+    public Book(int uid, String title, String subtitle, String author, String publisher, String pubyear, String pubplace, int pagecount, Content content, int isbn, String keywords) {
         this.uid = uid;
         this.title = title;
         this.subtitle = subtitle;
@@ -171,11 +161,11 @@ public class Book implements Serializable {
         this.publisher = publisher;
     }
 
-    public Date getPubyear() {
+    public String getPubyear() {
         return pubyear;
     }
 
-    public void setPubyear(Date pubyear) {
+    public void setPubyear(String pubyear) {
         this.pubyear = pubyear;
     }
 
@@ -214,8 +204,16 @@ public class Book implements Serializable {
     public String getKeywords() {
         return keywords;
     }
-    
-    public void hidrateFromJSON(JSONObject jsonData){
+
+    public void hidrateFromJSON(JSONObject jsonData) {
+        /*handle book Fields here*/
+        this.setAuthor((String) jsonData.get("author"));
+        this.setKeywords((String) jsonData.get("tags"));
+        this.setSubtitle((String) jsonData.get("subtitle"));
+        this.setTitle((String) jsonData.get("title"));
+        this.setPubyear((String) jsonData.get("year"));
+        this.setPublisher((String) jsonData.get("publisher"));
+        this.setPubplace((String) jsonData.get("place"));
         this.content.setData(jsonData.toJSONString());
     }
 
@@ -247,5 +245,4 @@ public class Book implements Serializable {
     public String toString() {
         return "com.cnam.opennote.domain.Book[ uid=" + uid + " ]";
     }
-    
 }

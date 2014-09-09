@@ -78,8 +78,7 @@ public class Indexation implements Serializable {
         this.uid = uid;
     }
 
-    public Indexation(Integer uid, String fieldname, String fieldvalue, String contentType) {
-        this.uid = uid;
+    public Indexation(String fieldname, String fieldvalue, String contentType) {
         this.fieldname = fieldname;
         this.fieldvalue = fieldvalue;
         this.contentType = contentType;
