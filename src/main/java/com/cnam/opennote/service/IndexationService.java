@@ -26,10 +26,24 @@ public class IndexationService {
     @EJB
     IndexationDAO indexationDAO;
 
+    /**
+     * Mettre à jour les contenus associés au contenu.
+     *
+     * @param content un contenu dont les données doivent être indexées
+     *
+     */
     public void handleContentIndexes(Content content) {
-        System.out.println("Content content");
+        try {
+            this.deleteContentIndexes(content);
+            this.handleIndexation(content);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
     }
 
+    /**
+     * @param book
+     */
     public void upsertBookIndexes(Book book) {
         try {
             this.deleteBookIndexes(book);
@@ -40,7 +54,13 @@ public class IndexationService {
         }
     }
 
-    public void deleteContentIndexes() {
+    public void deleteContentIndexes(Content content) {
+        try {
+            indexationDAO.deleteContentIndexes(content);
+        } catch (Exception e) {
+            e.printStackTrace(System.out);
+        }
+
     }
 
     /*handle Content indexation*/
@@ -52,16 +72,29 @@ public class IndexationService {
             Indexation index;
             JSONObject contentJson = (JSONObject) jsonParser.parse(content.getData());
             JSONArray indexInfos = (JSONArray) contentJson.get("__indexation__");
+            if (indexInfos == null) {
+                return;
+            }
+            String container = null;
+            Boolean hasContainer = false;
+            if(indexInfos.contains("container")){
+                hasContainer = true; 
+            }
+            
             for (int i = 0; i < indexInfos.size(); i++) {
                 String fieldName = (String) indexInfos.get(i);
                 String[] fieldInfos = fieldName.split(":");
                 String contentType = (String) contentJson.get("__entity__");
+                if(hasContainer){
+                   container =  (String) contentJson.get("container");
+                }
                 if (fieldInfos.length < 2) {
                     /*We assume the fieldvalue is a String*/
                     String fieldname = fieldInfos[0];
                     String fieldValue = (String) contentJson.get(fieldname);
                     index = new Indexation(fieldName, fieldValue, contentType);
                     index.setContent(content);
+                    index.setContainerUid(container);
                     indexationsList.add(index);
                 } else {
                     String fieldname = fieldInfos[0];
@@ -75,6 +108,7 @@ public class IndexationService {
                             for (c = 0; c < valueList.length; c++) {
                                 index = new Indexation(fieldname, valueList[c], contentType);
                                 index.setContent(content);
+                                index.setContainerUid(container);
                                 indexationsList.add(index);
                             }
                         }

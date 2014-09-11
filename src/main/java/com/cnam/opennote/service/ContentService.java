@@ -45,6 +45,14 @@ public class ContentService extends AbstractFacade<Content> {
         super(Content.class);
     }
 
+    /**
+     * Effacer un contenu de la base. 
+     * Lorsqu'un contenu est effacé, les champs indexés du contenu sont également
+     * effacés.
+     * @param data donnée à mettre à jour
+     * @return response
+     */
+    
     @POST
     @Path("update")
     public Response update(@FormParam("data") String data) {
@@ -55,9 +63,9 @@ public class ContentService extends AbstractFacade<Content> {
             long uid = (Long) json.get("uid");
             Content content = super.find((int) uid);
             content.setData(data);
+            content.setUpdatedAt(new Date());
             super.edit(content);
             /* handle indexation here */
-            
             indexationService.handleContentIndexes(content);
             response = this.getJsonResponse(content.toJson());
         } catch (Exception e) {
@@ -65,7 +73,15 @@ public class ContentService extends AbstractFacade<Content> {
         }
         return response;
     }
-
+    
+    /**
+     * Créer un nouveau contenu. 
+     * Losqu'un nouveau contenu. La valeur des champs déclarés dans __indexation__ est indéxée.
+     * 
+     * @param jsonContent Données en json permettant de créer un nouveau contenu
+     * @return response une réponse Json
+     */
+    
     @POST
     @Produces({"application/json"})
     public Response createJson(@FormParam("data") String jsonContent) {
@@ -84,14 +100,9 @@ public class ContentService extends AbstractFacade<Content> {
             content.setUpdatedAt(new Date());
             content.setData(jsonContent);
             super.create(content);
+            indexationService.handleContentIndexes(content);
             obj.put("uid", content.getUid());
-            /* handle JsonResponse here */
-            JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("result", content.toJson());
-            jsonResponse.put("error", false);
-            jsonResponse.put("status", "ok");
-            /* handle indexation */
-            response = Response.ok(jsonResponse.toJSONString()).build();
+            response = this.getJsonResponse(content.toJson());
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace(System.out);
@@ -100,17 +111,29 @@ public class ContentService extends AbstractFacade<Content> {
         return response;
     }
 
+    
+    /**
+     * Effacer un contenu de la base
+     * @param id Identifiant du content à effacer
+     */
     @DELETE
     @Path("{id}")
     public void remove(@PathParam("id") Integer id) {
         try {
-            super.remove(super.find(id));
-            /*delete indexation too*/
+            Content content = super.find(id);
+            indexationService.deleteContentIndexes(content);
+            super.remove(content);
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }
     }
 
+    
+    /**
+     * 
+     * @param id indentifiant du contenu à trouver
+     * @return response. Le contenu est retourné sous forme de Json
+     */
     @GET
     @Path("/{id}")
     @Produces({"application/json"})
@@ -118,11 +141,7 @@ public class ContentService extends AbstractFacade<Content> {
         Response response = Response.ok().build();
         try {
             Content content = super.find(id);
-            JSONObject jsonResponse = new JSONObject();
-            jsonResponse.put("result", content.toJson());
-            jsonResponse.put("error", false);
-            jsonResponse.put("status", "ok");
-            response = Response.ok(jsonResponse.toJSONString()).build();
+            response = this.getJsonResponse(content.toJson());
         } catch (Exception e) {
             e.printStackTrace(System.out);
             response = Response.ok().build();
@@ -130,7 +149,20 @@ public class ContentService extends AbstractFacade<Content> {
         return response;
     }
 
-    /* move to indexationService */
+   /* @GET
+    @Produce({"application/json"})
+    @Path("search")
+    public Response search(@QueryParam("q") String term){
+        List<Content> contents = indexationService.findContents(term);
+        JSONArray jsonColl = new JSONArray();
+            for (Content content : contents) {
+                JSONObject jsonContent = content.toJson();
+                jsonColl.add(jsonContent);
+            }
+            return this.getJsonResponse(jsonColl);
+
+    }*/
+    
     @GET
     @Produces({"application/json"})
     @Path("subcontents")
@@ -182,7 +214,14 @@ public class ContentService extends AbstractFacade<Content> {
         }
         return response;
     }
-
+    
+    
+    /**
+     * Helper permettant de renvoyer au client une réponse sous forme de json
+     * avec un status
+     * @param result l'objet représentant la réponse
+     * @return 
+     */
     private Response getJsonResponse(Object result) {
         Response response = Response.ok().build();
         try {
@@ -196,7 +235,7 @@ public class ContentService extends AbstractFacade<Content> {
         }
         return response;
     }
-
+    
     @Override
     protected EntityManager getEntityManager() {
         return em;
